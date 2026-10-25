@@ -15,7 +15,7 @@ Hi, I own a Razer Kraken V4 Pro (OLED hub + wireless headphones, USB ID `1532:05
 
 **Open:** the OLED non-image screens (system info etc.) and the volume popup could not be reproduced; the ANC command (0x92) has not been exercised.
 
-**Material** (protocol spec, a ~340-line stdlib-only Python reference tool, HID descriptors, decoded Synapse captures and raw USBPcap files): <LINK TO REPO>
+**Material** (protocol spec, a ~340-line stdlib-only Python reference tool, HID descriptors, decoded Synapse captures and raw USBPcap files): https://github.com/RGBLizard/razer-kraken-v4-pro-linux
 
 I'd like to turn this into proper OpenRazer support and have tested the full command set on one unit (firmware 1.6.3.0), so I can test patches on real hardware. Before I write code:
 
