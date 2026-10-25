@@ -1,0 +1,577 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kraken Control</title>
+<style>
+:root{
+  --bg:#0b0d0b; --panel:#141714; --panel2:#1b1f1b; --line:#272c27; --text:#e8ece8; --dim:#8a928a;
+  --accent:#44d62c; --accent-d:#2f9a1e; --warn:#ffb020; --bad:#ff5a4d;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:1080px;margin:0 auto;padding:0 clamp(14px,3vw,32px) 60px}
+.top{display:flex;align-items:center;gap:12px;padding:18px 0 14px}
+.brand{display:flex;gap:10px;align-items:center;flex:1}
+.logo{width:34px;height:34px;border-radius:9px;background:var(--accent);display:grid;place-items:center;color:#031003;font-weight:800}
+.brand b{font-size:15px;letter-spacing:.04em}
+.brand small{display:block;color:var(--dim);font-size:11px;letter-spacing:.08em;text-transform:uppercase}
+.topbtn{all:unset;cursor:pointer;padding:10px 16px;border-radius:10px;border:1px solid var(--line);background:var(--panel);color:var(--text);font-weight:600;display:flex;gap:8px;align-items:center}
+.topbtn:hover{border-color:var(--accent-d)}.topbtn.on{border-color:var(--accent);color:var(--accent)}
+.topbtn svg{width:18px;height:18px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.devices{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px;margin-bottom:18px}
+.devc{all:unset;cursor:pointer;display:grid;grid-template-columns:54px 1fr;gap:4px 14px;align-items:center;padding:16px 18px;border-radius:16px;border:1px solid var(--line);background:var(--panel);transition:.15s}
+.devc:hover{border-color:var(--accent-d);transform:translateY(-1px)}
+.devc.on{border-color:var(--accent);background:#12240f;box-shadow:0 0 0 1px var(--accent) inset,0 6px 24px #44d62c14}
+.devc:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.devc svg{grid-row:1/4;width:54px;height:54px;stroke:var(--dim);fill:none;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round}
+.devc.on svg{stroke:var(--accent)}
+.devc b{font-size:17px}.devc small{color:var(--dim);font-size:12.5px}
+.devc .st{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--dim)}
+.devc .st output{margin-left:auto;color:var(--text);font-weight:600;font-variant-numeric:tabular-nums}
+.devc .bat{margin:2px 0 0;grid-column:2}
+.devc.off{opacity:.6}
+.subtabs{display:flex;gap:6px;overflow-x:auto;border-bottom:1px solid var(--line);margin-bottom:22px;padding-bottom:0}
+.subtabs button{all:unset;cursor:pointer;padding:12px 18px;color:var(--dim);font-weight:600;border-bottom:3px solid transparent;white-space:nowrap}
+.subtabs button:hover{color:var(--text)}.subtabs button.on{color:var(--accent);border-bottom-color:var(--accent)}
+.subtabs button:focus-visible{outline:2px solid var(--accent);outline-offset:-2px;border-radius:6px}
+section>h1{display:none}
+.dot{width:9px;height:9px;border-radius:50%;background:var(--bad)} .dot.ok{background:var(--accent);box-shadow:0 0 8px var(--accent)}
+.bat{height:7px;background:var(--line);border-radius:4px;overflow:hidden;margin:4px 0 8px}.bat i{display:block;height:100%;background:var(--accent);width:0}
+h1{font-size:24px;margin:0 0 4px;letter-spacing:.02em}.sub{color:var(--dim);margin:0 0 20px}
+section{display:none}section.on{display:block}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px;margin-bottom:16px}
+.card h2{margin:0 0 4px;font-size:13px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent)}
+.card p.hint{margin:0 0 16px;color:var(--dim);font-size:13px}
+.chips{display:flex;flex-wrap:wrap;gap:8px}
+.chip{all:unset;cursor:pointer;padding:9px 16px;border-radius:999px;border:1px solid var(--line);background:var(--panel2);color:var(--text)}
+.chip:hover{border-color:var(--accent-d)} .chip.on{background:var(--accent);color:#031003;border-color:var(--accent);font-weight:600}
+.cards4{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
+.big{all:unset;cursor:pointer;padding:18px;border-radius:12px;border:1px solid var(--line);background:var(--panel2);display:block}
+.big:hover{border-color:var(--accent-d)} .big.on{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset;background:#12240f}
+.big b{display:block;font-size:16px;margin-bottom:4px}.big span{color:var(--dim);font-size:12.5px}
+.field{display:grid;grid-template-columns:150px 1fr 70px;gap:14px;align-items:center;margin:14px 0}
+.field label{color:var(--text)} .field output{text-align:right;color:var(--accent);font-variant-numeric:tabular-nums}
+.ends{display:flex;justify-content:space-between;color:var(--dim);font-size:11.5px;margin-top:-4px}
+input[type=range]{-webkit-appearance:none;appearance:none;width:100%;height:6px;border-radius:3px;background:var(--line);outline:none;--p:50%;background:linear-gradient(90deg,var(--accent) var(--p),var(--line) var(--p))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;background:#fff;border:3px solid var(--accent);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid var(--accent);cursor:pointer}
+input[type=range]:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+.eq{display:grid;grid-template-columns:repeat(10,1fr);gap:6px;margin:18px 0 4px;text-align:center}
+.eq div{display:flex;flex-direction:column;align-items:center;gap:6px}
+.eq input{writing-mode:vertical-lr;direction:rtl;width:6px;height:150px;background:var(--line)}
+.eq input::-webkit-slider-thumb{margin:0}
+.eq small{color:var(--dim);font-size:11px}.eq output{font-size:12px;color:var(--accent);font-variant-numeric:tabular-nums}
+.switch{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:6px 0}
+.switch b{display:block}.switch span{color:var(--dim);font-size:13px}
+.tg{all:unset;cursor:pointer;width:46px;height:26px;border-radius:13px;background:var(--line);position:relative;flex:none;transition:.15s}
+.tg::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;transition:.15s}
+.tg.on{background:var(--accent)}.tg.on::after{left:23px}.tg:focus-visible{outline:2px solid var(--accent);outline-offset:3px}
+.btn{all:unset;cursor:pointer;padding:10px 20px;border-radius:9px;background:var(--accent);color:#031003;font-weight:700}
+.btn:hover{background:#5be843}.btn.ghost{background:var(--panel2);color:var(--text);border:1px solid var(--line)}.btn:disabled{opacity:.45;cursor:default}
+.btn:focus-visible,.chip:focus-visible,.big:focus-visible,.subtabs button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.oled{display:grid;grid-template-columns:auto 1fr;gap:20px;align-items:start}
+canvas{background:#000;border:1px solid var(--line);border-radius:8px;image-rendering:pixelated;width:464px;max-width:100%;display:block}
+.drop{border:1.5px dashed var(--line);border-radius:10px;padding:16px;text-align:center;color:var(--dim);cursor:pointer;margin-bottom:12px}
+.drop.over{border-color:var(--accent);color:var(--accent)}
+.row2{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin:10px 0}
+input[type=text]{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:9px 12px;min-width:200px;font:inherit}
+input[type=text]:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.plist{display:grid;gap:8px;margin-bottom:14px}.prow{display:flex;align-items:center;gap:10px;padding:10px 14px;border:1px solid var(--line);border-radius:10px;background:var(--panel2)}
+.prow b{flex:1}.prow small{color:var(--dim)}.btn.sm{padding:6px 14px;font-size:13px}.btn.bad{background:transparent;color:#ffb3ac;border:1px solid var(--line)}
+.chip .x{margin-left:8px;color:var(--dim)}.chip .x:hover{color:var(--bad)}
+#kb{position:relative;overflow-x:auto;padding:6px 2px 14px;touch-action:none;user-select:none}
+#kbi{position:relative}.k{position:absolute;border-radius:6px;border:1px solid #2c312c;background:#0d0f0d;color:#6c746c;font-size:10px;display:grid;place-items:center;cursor:crosshair;padding:0;overflow:hidden}
+.k:hover{border-color:var(--accent)}.k span{pointer-events:none;mix-blend-mode:difference;color:#fff;opacity:.85}
+.tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 12px}
+select{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px 10px}
+.note{border-left:3px solid var(--warn);padding:8px 12px;background:#2a2210;color:#e9d9aa;border-radius:0 8px 8px 0;font-size:13px;margin-top:12px}
+#toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--panel2);border:1px solid var(--line);padding:10px 18px;border-radius:10px;opacity:0;transition:.2s;pointer-events:none;z-index:9}
+#toast.show{opacity:1;transform:translateX(-50%)}#toast.bad{border-color:var(--bad);color:#ffb3ac}#toast.good{border-color:var(--accent-d)}
+@media (max-width:760px){
+  .field{grid-template-columns:1fr 60px}.field label{grid-column:1/-1}.oled{grid-template-columns:1fr}
+  .topbtn span{display:none}.devc{padding:12px 14px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header class="top">
+  <div class="brand"><div class="logo">K</div><div><b>RAZER CONTROL</b><small>for Linux</small></div></div>
+  <button class="topbtn" id="allbtn" data-d="all"><svg viewBox="0 0 24 24"><path d="M5 4h11l3 3v13H5zM8 4v5h7V4M8 20v-6h8v6"/></svg><span>Profiles &amp; sync</span></button>
+</header>
+<div class="devices" id="devices">
+  <button class="devc" data-d="headset" id="dev-headset" aria-label="Headset settings">
+    <svg viewBox="0 0 48 48"><path d="M8 30v-6a16 16 0 0132 0v6"/><rect x="5" y="28" width="9" height="14" rx="4"/><rect x="34" y="28" width="9" height="14" rx="4"/><path d="M39 42c0 3-4 4-9 4"/></svg>
+    <div><b>Headset</b><br><small>Kraken V4 Pro</small></div>
+    <div class="st"><span class="dot" id="dot"></span><span id="conn">Connecting…</span><output id="batt">–</output></div>
+    <div class="bat"><i id="batbar"></i></div>
+  </button>
+  <button class="devc" data-d="mouse" id="dev-mouse" aria-label="Mouse settings">
+    <svg viewBox="0 0 48 48"><rect x="12" y="4" width="24" height="40" rx="12"/><path d="M24 4v14M12 20h24"/></svg>
+    <div><b>Mouse</b><br><small>Naga V2 Pro</small></div>
+    <div class="st"><span>Battery</span><output id="mbatO">–</output><b id="mbat" hidden></b></div>
+    <div class="bat"><i id="mbatbar"></i></div>
+  </button>
+  <button class="devc" data-d="keyboard" id="dev-keyboard" aria-label="Keyboard settings">
+    <svg viewBox="0 0 48 48"><rect x="3" y="12" width="42" height="24" rx="4"/><path d="M9 20h2M15 20h2M21 20h2M27 20h2M33 20h2M39 20h0M9 28h30"/></svg>
+    <div><b>Keyboard</b><br><small>DeathStalker V2 Pro</small></div>
+    <div class="st"><span>Battery</span><output id="kbatO">–</output><b id="kbat" hidden></b></div>
+    <div class="bat"><i id="kbatbar"></i></div>
+  </button>
+</div>
+<div class="subtabs" id="subtabs" role="tablist"></div>
+<div id="meta" style="display:none"></div>
+<main>
+
+<section id="sound">
+  <h1>Sound</h1><p class="sub">Equalizer, balance, volume and the THX-like effect.</p>
+  <div class="card"><h2>Equalizer</h2><p class="hint">Stored on the headset. Presets apply instantly; drag the bands for a custom curve.</p>
+    <div class="chips" id="eqChips"></div>
+    <div class="eq" id="eq"></div>
+  </div>
+  <div class="card"><h2>Mix</h2>
+    <div class="field"><label for="bal">Game / Chat balance</label><input type="range" id="bal" min="0" max="20"><output id="balO"></output></div>
+    <div class="ends"><span style="margin-left:164px">Chat</span><span style="margin-right:84px">Game</span></div>
+    <div class="field"><label for="vol">Headset volume</label><input type="range" id="vol" min="-72" max="0"><output id="volO"></output></div>
+    <p class="hint" style="margin:0">Follows your system volume and the knob, and shows on the hub display. 0 dB is the loudest.</p>
+  </div>
+  <div class="card"><h2>Virtual surround 7.1</h2>
+    <div class="switch"><div><b>Surround for headphones (HRTF)</b><span>Games and movies with 5.1 or 7.1 sound are placed around your head, front, sides and behind, like THX Spatial Audio. Stereo is placed in front of you.</span></div>
+    <button class="tg" id="sur" role="switch" aria-label="Virtual surround 7.1"></button></div></div>
+  <div class="card"><h2>THX-like effect</h2>
+    <div class="switch"><div><b>Bass boost, loudness and limiter</b><span>Software effect (EasyEffects) in place of THX Spatial Audio, which only exists on Windows.</span></div>
+    <button class="tg" id="thx" role="switch" aria-label="THX-like effect"></button></div>
+  </div>
+</section>
+
+<section id="haptics">
+  <h1>Haptics</h1><p class="sub">Bass vibration in the ear cups.</p>
+  <div class="card"><h2>Profile</h2><p class="hint">Which profile the headset uses. “Custom” uses its own band settings.</p>
+    <div class="cards4" id="hap"></div></div>
+  <div class="card"><h2>Intensity</h2><p class="hint">How strong the vibration is, on top of the profile.</p>
+    <div class="field"><label for="hi">Haptics strength</label><input type="range" id="hi" min="0" max="6" step="1"><output id="hiO"></output></div>
+    <div class="ends"><span style="margin-left:164px">Off</span><span style="margin-right:84px">Strongest</span></div></div>
+  <div class="card"><h2>Custom profile <span style="color:var(--warn);text-transform:none;letter-spacing:0">· experimental</span></h2>
+    <p class="hint">Fine-tune the bass the “Custom” profile reacts to. The headset does not publish the limits for these two, so the ranges are cautious guesses.</p>
+    <div class="field"><label for="hf">Bass frequency</label><input type="range" id="hf" min="40" max="250" step="5"><output id="hfO"></output></div>
+    <div class="field"><label for="hv">Bass volume</label><input type="range" id="hv" min="0" max="100" step="5"><output id="hvO"></output></div>
+    <button class="chip" id="hCustom">Switch to Custom profile</button></div>
+</section>
+
+<section id="light">
+  <h1>Lighting</h1><p class="sub">Headset and hub lighting.</p>
+  <div class="card"><h2>Brightness</h2>
+    <div class="field"><label for="lt">Brightness</label><input type="range" id="lt" min="0" max="100"><output id="ltO"></output></div>
+    <p class="hint" style="margin:0">0% turns the lighting off.</p>
+  </div>
+  <div class="card"><h2>Effect</h2><p class="hint">Rendered by this app and streamed to the headset about 10 times a second. “Hardware” hands lighting back to the headset.</p>
+    <div class="cards4" id="fx"></div>
+    <div class="field"><label for="fcol">Colour</label><input type="color" id="fcol" value="#44d62c" style="width:70px;height:36px;border:1px solid var(--line);background:var(--panel2);border-radius:8px;padding:2px"><output></output></div>
+    <div class="chips" id="swatches" aria-label="Quick colours"></div>
+    <div class="field"><label for="fsp">Speed</label><input type="range" id="fsp" min="1" max="10" value="5"><output id="fspO">5</output></div>
+    <div class="note" id="fxnote" hidden>The app is streaming this effect. Closing the app (or choosing Hardware) hands lighting back to the headset.</div>
+  </div>
+  <div class="card"><h2>Lighting presets</h2><p class="hint">Save the current lighting (brightness, effect, colour, speed) and bring it back with one click.</p>
+    <div class="chips" id="lpre" style="margin-bottom:12px"></div>
+    <div class="row2"><input type="text" id="lname" maxlength="40" placeholder="Preset name" aria-label="Lighting preset name"><button class="btn" id="lsave">Save current lighting</button></div></div>
+</section>
+
+<section id="oled">
+  <h1>Display</h1><p class="sub">The OLED screen on the hub.</p>
+  <div class="card"><h2>Brightness</h2>
+    <div class="field"><label for="ob">Screen brightness</label><input type="range" id="ob" min="0" max="100"><output id="obO"></output></div></div>
+  <div class="card"><h2>Custom picture</h2><p class="hint">Any image is converted to 232×64 pixels in 16 grays and stored on the hub (image slot 0).</p>
+    <div class="oled"><div><canvas id="cv" width="232" height="64" aria-label="Preview"></canvas></div>
+    <div>
+      <div class="drop" id="drop" tabindex="0">Drop an image here or click to choose<input type="file" id="file" accept="image/*" hidden></div>
+      <div class="row2"><label for="fit">Fit</label><select id="fit"><option value="contain">Keep proportions</option><option value="cover">Fill and crop</option><option value="stretch">Stretch</option></select>
+      <label><input type="checkbox" id="inv"> Invert</label></div>
+      <div class="row2"><button class="btn" id="send" disabled>Send to headset</button><button class="btn ghost" id="demo">Draw “LINUX”</button></div>
+    </div></div>
+  </div>
+</section>
+
+<section id="mic">
+  <h1>Microphone</h1><p class="sub">Sidetone lets you hear your own voice.</p>
+  <div class="card"><h2>Microphone</h2>
+    <div class="switch"><div><b>Mute microphone</b><span>The hub's mic switch. Sidetone only works while the mic is on.</span></div><button class="tg" id="mm" role="switch" aria-label="Mute microphone"></button></div>
+  </div>
+  <div class="card"><h2>Microphone EQ</h2><p class="hint">How your voice sounds to others.</p>
+    <div class="chips" id="micEq"></div></div>
+  <div class="card"><h2>Sidetone</h2>
+    <div class="switch"><div><b>Hear yourself</b><span>Plays your mic into the headphones.</span></div><button class="tg" id="st" role="switch" aria-label="Sidetone"></button></div>
+    <div class="field"><label for="sl">Level</label><input type="range" id="sl" min="0" max="15"><output id="slO"></output></div>
+    <div class="note">The headset refuses this setting while the microphone is muted.</div>
+  </div>
+</section>
+
+<section id="mouse">
+  <h1>Mouse</h1><p class="sub">Sensitivity, polling rate and sleep time.</p>
+  <div class="card"><h2>Sensor</h2>
+    <div class="field"><label for="mdpi">DPI</label><input type="range" id="mdpi" min="100" max="30000" step="50"><output id="mdpiO"></output></div>
+    <div class="chips" id="mdpiChips" style="margin:0 0 16px"></div>
+    <div class="row2"><label>Polling rate</label><div class="chips" id="mpoll"></div></div>
+  </div>
+  <div class="card"><h2>Power saving</h2><div class="row2"><label for="midle">Sleep after</label><select id="midle"></select></div></div>
+</section>
+
+<section id="mlight">
+  <p class="sub">Naga V2 Pro lights: the logo and the thumb-button panel.</p>
+  <div class="card"><h2>Lighting</h2><p class="hint">Zone first, then the look. The Naga has a logo and the thumb-button panel.</p>
+    <div class="chips" id="mzone" style="margin-bottom:12px"></div><div class="cards4" id="mfx"></div>
+    <div class="field"><label for="mcol">Colour</label><input type="color" id="mcol" value="#44d62c" style="width:70px;height:36px;border:1px solid var(--line);background:var(--panel2);border-radius:8px;padding:2px"><output></output></div>
+    <div class="field"><label for="mbr">Brightness</label><input type="range" id="mbr" min="0" max="100" step="1"><output id="mbrO"></output></div>
+  </div>
+</section>
+
+<section id="keyboard">
+  <h1>Keyboard</h1><p class="sub">Backlight effects, animated effects and saved looks.</p>
+  <div class="card"><h2>Lighting</h2><div class="cards4" id="kfx"></div>
+    <div class="field"><label for="kcol">Colour</label><input type="color" id="kcol" value="#44d62c" style="width:70px;height:36px;border:1px solid var(--line);background:var(--panel2);border-radius:8px;padding:2px"><output></output></div>
+    <div class="field"><label for="kbr">Brightness</label><input type="range" id="kbr" min="0" max="100" step="1"><output id="kbrO"></output></div>
+  </div>
+  <div class="card"><h2>Animated effects</h2><p class="hint">Every key is lit in software, about 8 frames a second. Press-reactive effects follow what you type. Choosing a normal effect or painting keys stops the animation.</p>
+    <div class="cards4" id="afx"></div>
+    <div class="field"><label for="afcol">Colour</label><input type="color" id="afcol" value="#44d62c" style="width:70px;height:36px;border:1px solid var(--line);background:var(--panel2);border-radius:8px;padding:2px"><output></output></div>
+    <div class="field"><label for="afsp">Speed / sensitivity</label><input type="range" id="afsp" min="1" max="10" step="1" value="5"><output id="afspO">5</output></div>
+    <div class="row2"><button class="chip" id="afstop">Stop animation</button></div>
+  </div>
+  <div class="card"><h2>Keyboard presets</h2><p class="hint">Save the current keyboard look (effect or painted keys) and bring it back with one click.</p>
+    <div class="chips" id="kpre" style="margin-bottom:12px"></div>
+    <div class="row2"><input type="text" id="kname" maxlength="40" placeholder="Preset name" aria-label="Keyboard preset name"><button class="btn" id="ksave">Save current keyboard look</button></div></div>
+</section>
+
+<section id="paint">
+  <p class="sub">Colour single keys by hand.</p>
+  <div class="card"><h2>Per-key lighting</h2><p class="hint">Pick a colour, then click or drag over keys to paint them. Changes appear on the keyboard right away. Choosing an effect above replaces this.</p>
+    <div class="tools"><input type="color" id="pkc" value="#44d62c" style="width:56px;height:34px;border:1px solid var(--line);background:var(--panel2);border-radius:8px;padding:2px" aria-label="Paint colour">
+      <button class="chip" id="pkFill">Fill all</button><button class="chip" id="pkClear">Clear</button><button class="chip" id="pkRainbow">Rainbow</button><button class="chip" id="pkWasd">WASD highlight</button><button class="chip" id="pkGrad">Gradient</button></div>
+    <div id="kb" aria-label="Keyboard"><div id="kbi"></div></div></div>
+</section>
+
+<section id="buttons">
+  <h1>Buttons &amp; macros</h1><p class="sub">Naga V2 Pro side buttons: give each one a key combo, a macro, or switch it off.</p>
+  <div class="card"><h2>Side buttons</h2><p class="hint" id="rstat">Buttons left on Default behave as normal.</p>
+    <div class="plist" id="rbtn"></div>
+    <details><summary>Key names</summary><p class="hint" id="rkeys"></p></details>
+    <div class="row2"><button class="btn" id="rsave">Save buttons and macros</button></div></div>
+  <div class="card"><h2>Macros</h2><p class="hint">Type steps separated by spaces: <code>ctrl+c</code> taps a combo, <code>+shift</code> holds a key, <code>-shift</code> releases it, a number waits that many milliseconds. Example: <code>ctrl+c 200 alt+tab 300 ctrl+v</code>. Or press Record and type it on the keyboard.</p>
+    <div class="plist" id="rmac"></div><button class="chip" id="radd">+ New macro</button></div>
+</section>
+
+<section id="sync">
+  <p class="sub">Set every device to the same colour in one click.</p>
+  <div class="card"><h2>Match all devices</h2><p class="hint">One solid colour on your headset, keyboard and mouse at once.</p>
+    <div class="row2"><input type="color" id="scol" value="#44d62c" style="width:70px;height:36px;border:1px solid var(--line);background:var(--panel2);border-radius:8px;padding:2px" aria-label="Colour for all devices"><button class="btn" id="ssync">Apply to everything</button></div></div>
+</section>
+
+<section id="profiles">
+  <h1>Profiles</h1><p class="sub">Save everything you have set up and switch between setups.</p>
+  <div class="card"><h2>Saved profiles</h2><p class="hint">A profile stores sound (EQ, balance, THX-like), haptics, lighting, display brightness and microphone settings. Loading one applies all of it.</p>
+    <div class="plist" id="plist"></div>
+    <div class="row2"><input type="text" id="pname" maxlength="40" placeholder="Profile name" aria-label="Profile name"><button class="btn" id="psave">Save all current settings</button></div></div>
+  <div class="card"><h2>At login</h2>
+    <div class="switch"><div><b>Restore my last settings</b><span>The headset forgets EQ curves and lighting effects when it powers off. This puts them back automatically.</span></div><button class="tg" id="ar" role="switch" aria-label="Restore my last settings at login"></button></div></div>
+</section>
+
+</main>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
+
+<script>
+const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
+const HZ = ["31","63","125","250","500","1k","2k","4k","8k","16k"];
+const EQN = {0:"Default",7:"Game",8:"Music",9:"Movie",255:"Custom"};
+const HAP = [[1,"Controlled","Gentle, tight bass"],[2,"Balanced","Everyday default"],[3,"Dynamic","Strong, reactive"],[4,"Custom","Your own settings"]];
+let S = null, busy = 0, presets = {};
+
+function toast(msg, kind){const t=$("#toast");t.textContent=msg;t.className="show "+(kind||"");clearTimeout(toast.t);toast.t=setTimeout(()=>t.className="",2600)}
+function fill(el){el.style.setProperty("--p",((el.value-el.min)/(el.max-el.min)*100)+"%")}
+async function api(path, body){
+  const r = await fetch(path, body ? {method:"POST",headers:{"Content-Type":"application/json","X-Kraken":"1"},body:JSON.stringify(body)} : undefined);
+  const j = await r.json(); if(!r.ok) throw new Error(j.error||r.status); return j;
+}
+async function set(kind, value, label){
+  busy++;
+  try{ const j = await api("/api/set",{kind,value}); j.ok ? toast((label||"Saved"),"good") : toast(j.asleep?"That device is asleep. Move it or press a key, then try again":"The headset refused this setting","bad"); return j.ok }
+  catch(e){ toast("Error: "+e.message,"bad"); return false }
+  finally{ setTimeout(()=>busy--,1500) }
+}
+const later = (fn,ms=350)=>{let t;return(...a)=>{clearTimeout(t);t=setTimeout(()=>fn(...a),ms)}};
+
+/* navigation */
+const TABS={headset:[["sound","Sound"],["haptics","Haptics"],["light","Lighting"],["mic","Microphone"],["oled","Display"]],
+  mouse:[["mouse","Settings"],["mlight","Lighting"],["buttons","Buttons & macros"]],
+  keyboard:[["keyboard","Lighting"],["paint","Paint keys"]],
+  all:[["profiles","Profiles"],["sync","Match colour"]]};
+let nav={dev:"headset",tab:{}};
+try{Object.assign(nav,JSON.parse(localStorage.getItem("rc-nav")||"{}"))}catch(e){}
+function show(dev,tab){
+  if(!TABS[dev])dev="headset";
+  tab=tab||nav.tab[dev];if(!TABS[dev].some(t=>t[0]===tab))tab=TABS[dev][0][0];
+  nav.dev=dev;nav.tab[dev]=tab;try{localStorage.setItem("rc-nav",JSON.stringify(nav))}catch(e){}
+  $$(".devc,#allbtn").forEach(b=>b.classList.toggle("on",b.dataset.d===dev));
+  const bar=$("#subtabs");bar.innerHTML="";
+  TABS[dev].forEach(([id,name])=>{const b=document.createElement("button");b.textContent=name;b.setAttribute("role","tab");b.setAttribute("aria-selected",id===tab);b.className=id===tab?"on":"";b.onclick=()=>show(dev,id);bar.append(b)});
+  $$("section").forEach(x=>x.classList.toggle("on",x.id===tab));
+}
+$$(".devc,#allbtn").forEach(b=>b.onclick=()=>show(b.dataset.d));
+show(nav.dev);
+
+{const t=location.hash.slice(1),d=Object.keys(TABS).find(k=>TABS[k].some(x=>x[0]===t));if(d)show(d,t)}  // open a page straight from the address, e.g. /#mlight
+/* sound: EQ */
+const eqBox = $("#eq");
+HZ.forEach((h,i)=>{eqBox.insertAdjacentHTML("beforeend",`<div><output id="eo${i}">0</output><input type="range" id="e${i}" min="-12" max="12" value="0" aria-label="${h} Hz"><small>${h}</small></div>`)});
+const eqIn = HZ.map((_,i)=>$("#e"+i));
+function drawEq(bands){bands.forEach((v,i)=>{eqIn[i].value=v;$("#eo"+i).textContent=v>0?"+"+v:v;fill(eqIn[i])})}
+const sendEq = later(()=>set("eq",{id:255,bands:eqIn.map(e=>+e.value)},"Custom EQ saved").then(()=>markEq(255)),450);
+eqIn.forEach((e,i)=>e.oninput=()=>{drawEq(eqIn.map(x=>+x.value));markEq(255);sendEq()});
+function markEq(id){$$("#eqChips .chip").forEach(c=>c.classList.toggle("on",+c.dataset.id===id))}
+function buildChips(){
+  const box=$("#eqChips");box.innerHTML="";
+  Object.entries(presets).forEach(([n,p])=>{const c=document.createElement("button");c.className="chip";c.dataset.id=p.id;c.textContent=EQN[p.id]||n;
+    c.onclick=()=>{drawEq(p.bands);markEq(p.id);set("eq",{id:p.id,bands:p.bands},EQN[p.id]+" EQ")};box.append(c)});
+  const c=document.createElement("button");c.className="chip";c.dataset.id=255;c.textContent="Custom";c.onclick=()=>{markEq(255);set("eq",{id:255,bands:eqIn.map(e=>+e.value)},"Custom EQ saved")};box.append(c);
+}
+/* sound: mix */
+const bind=(id,out,fmt,kind,label)=>{const el=$(id);el.oninput=()=>{$(out).textContent=fmt(+el.value);fill(el)};el.onchange=()=>set(kind,+el.value,label)};
+bind("#bal","#balO",v=>v===10?"Even":v<10?"Chat +"+(10-v):"Game +"+(v-10),"balance","Balance saved");
+bind("#vol","#volO",v=>v+" dB","hubdb","Volume set");
+bind("#lt","#ltO",v=>v+"%","light","Brightness set");
+bind("#ob","#obO",v=>v+"%","oled","Screen brightness set");
+bind("#sl","#slO",v=>v,"x");
+bind("#hf","#hfO",v=>v+" Hz","hapfreq","Bass frequency set");
+bind("#hv","#hvO",v=>v+"%","hapvol","Bass volume set");
+$("#hCustom").onclick=async()=>{if(await set("haptics",4,"Custom haptics"))markHap(4)};
+bind("#hi","#hiO",v=>v?v:"Off","hapint","Haptics strength set");
+$("#sl").onchange=async()=>{if(await stSend(true))$("#st").classList.add("on")}; // moving the level turns sidetone on
+$("#sur").onclick=async()=>{const on=!$("#sur").classList.contains("on");if(await set("surround",on,on?"Surround on":"Surround off"))$("#sur").classList.toggle("on",on)};
+$("#thx").onclick=async()=>{const on=!$("#thx").classList.contains("on");if(await set("thx",on,on?"THX-like on":"THX-like off"))$("#thx").classList.toggle("on",on)};
+$("#mm").onclick=async()=>{const m=!$("#mm").classList.contains("on");if(await set("micmute",m,m?"Microphone muted":"Microphone on"))$("#mm").classList.toggle("on",m)};
+$("#st").onclick=async()=>{const on=!$("#st").classList.contains("on");if(await stSend(on))$("#st").classList.toggle("on",on)};
+function stSend(on){return set("sidetone",{on:on===undefined?$("#st").classList.contains("on"):on,level:+$("#sl").value},"Sidetone saved")}
+/* lighting effects */
+const FX=[["off","Hardware","Headset's own lighting"],["static","Static","One solid colour"],["breathing","Breathing","Fades in and out"],["spectrum","Spectrum","Whole headset cycles colours"],["wheel","Wheel","Rainbow rotating around"],["meter","Audio meter","Lights rise and fall with the sound"],["pulse","Audio pulse","Your colour pulses with the bass"],["bands","Audio bands","Bass red, mids green, treble blue"],["flash","Beat flash","Your colour flashes on every beat"]];
+const AUDIO_FX=["meter","pulse","bands","flash"], USES_COLOR=["static","breathing","pulse","flash"];
+const hex2rgb=h=>[1,3,5].map(i=>parseInt(h.slice(i,i+2),16)), rgb2hex=c=>"#"+c.map(x=>x.toString(16).padStart(2,"0")).join("");
+let fx="off";
+FX.forEach(([id,n,d])=>{const b=document.createElement("button");b.className="big";b.dataset.id=id;b.innerHTML=`<b>${n}</b><span>${d}</span>`;b.onclick=()=>{fx=id;markFx();sendFx()};$("#fx").append(b)});
+function markFx(){$$("#fx .big").forEach(b=>b.classList.toggle("on",b.dataset.id===fx));$("#fxnote").hidden=fx==="off";
+  const a=AUDIO_FX.includes(fx);$("label[for=fsp]").textContent=a?"Sensitivity":"Speed";            // speed slider doubles as sensitivity for audio effects
+  $("#fcol").closest(".field").style.display=$("#swatches").style.display=(fx==="off"||USES_COLOR.includes(fx))?"":"none"}
+const sendFx=later(()=>set("effect",{effect:fx,color:hex2rgb($("#fcol").value),speed:+$("#fsp").value},fx==="off"?"Hardware lighting":"Effect started"),200);
+["#44d62c","#ff2d2d","#ff8a00","#ffe600","#00d4ff","#2f6bff","#b24bff","#ff4fd8","#ffffff"].forEach(c=>{const b=document.createElement("button");b.className="chip";b.style.cssText=`background:${c};width:34px;height:34px;padding:0;border:2px solid var(--line)`;b.setAttribute("aria-label","Colour "+c);b.onclick=()=>{$("#fcol").value=c;if(fx==="off"){fx="static";markFx()}sendFx()};$("#swatches").append(b)});
+$("#fcol").oninput=()=>{if(fx==="off"){fx="static";markFx()}sendFx()};
+$("#fsp").oninput=()=>{$("#fspO").textContent=$("#fsp").value;fill($("#fsp"));sendFx()};
+/* mic EQ */
+[[0,"Default"],[1,"Mic Boost"],[2,"Broadcast"],[3,"Conference"]].forEach(([id,n])=>{const c=document.createElement("button");c.className="chip";c.dataset.id=id;c.textContent=n;
+  c.onclick=async()=>{if(await set("miceq",id,n+" mic EQ"))markMic(id)};$("#micEq").append(c)});
+function markMic(id){$$("#micEq .chip").forEach(c=>c.classList.toggle("on",+c.dataset.id===id))}
+/* haptics */
+HAP.forEach(([id,n,d])=>{const b=document.createElement("button");b.className="big";b.dataset.id=id;b.innerHTML=`<b>${n}</b><span>${d}</span>`;
+  b.onclick=async()=>{if(await set("haptics",id,n+" haptics"))markHap(id)};$("#hap").append(b)});
+function markHap(id){$$("#hap .big").forEach(b=>b.classList.toggle("on",+b.dataset.id===id))}
+
+/* display: image conversion happens here, the server only gets 14848 values of 0..15 */
+const cv=$("#cv"),cx=cv.getContext("2d",{willReadFrequently:true});let img=null,px=null;
+function render(){
+  cx.fillStyle="#000";cx.fillRect(0,0,232,64);
+  if(img){const w=img.naturalWidth||img.width,h=img.naturalHeight||img.height,m=$("#fit").value;
+    let dw=232,dh=64,dx=0,dy=0;
+    if(m!=="stretch"){const s=(m==="contain"?Math.min:Math.max)(232/w,64/h);dw=w*s;dh=h*s;dx=(232-dw)/2;dy=(64-dh)/2}
+    cx.drawImage(img,dx,dy,dw,dh)}
+  const d=cx.getImageData(0,0,232,64),a=d.data;px=[];
+  for(let i=0;i<a.length;i+=4){let v=Math.floor((0.2126*a[i]+0.7152*a[i+1]+0.0722*a[i+2])/16);if($("#inv").checked)v=15-v;px.push(v);const g=v*17;a[i]=a[i+1]=a[i+2]=g;a[i+3]=255}
+  cx.putImageData(d,0,0);$("#send").disabled=!img;
+}
+function load(f){if(!f)return;const u=URL.createObjectURL(f),i=new Image();i.onload=()=>{img=i;render();URL.revokeObjectURL(u)};i.src=u}
+$("#drop").onclick=()=>$("#file").click();$("#drop").onkeydown=e=>{if(e.key==="Enter"||e.key===" ")$("#file").click()};
+$("#file").onchange=e=>load(e.target.files[0]);
+["dragover","dragenter"].forEach(n=>$("#drop").addEventListener(n,e=>{e.preventDefault();$("#drop").classList.add("over")}));
+["dragleave","drop"].forEach(n=>$("#drop").addEventListener(n,e=>{e.preventDefault();$("#drop").classList.remove("over")}));
+$("#drop").addEventListener("drop",e=>load(e.dataTransfer.files[0]));
+$("#fit").onchange=$("#inv").onchange=render;
+$("#demo").onclick=()=>{ // renders text through the same pipeline
+  const c=document.createElement("canvas");c.width=232;c.height=64;const g=c.getContext("2d");g.fillStyle="#000";g.fillRect(0,0,232,64);
+  g.fillStyle="#fff";g.font="bold 46px system-ui,sans-serif";g.textAlign="center";g.textBaseline="middle";g.fillText("LINUX",116,34);
+  g.strokeStyle="#555";g.strokeRect(.5,.5,231,63);img=c;render()};
+$("#send").onclick=async()=>{const b=$("#send");b.disabled=true;b.textContent="Sending…";busy++;
+  try{const j=await api("/api/oled-image",{pixels:px});toast("Picture stored on the hub ("+j.packets+" packets)","good")}
+  catch(e){toast("Upload failed: "+e.message,"bad")}
+  finally{b.textContent="Send to headset";b.disabled=!img;setTimeout(()=>busy--,1500)}};
+render();
+
+/* mouse + keyboard */
+const RFX=[["off","Off"],["static","Static"],["spectrum","Spectrum"],["breathing","Breathing"],["wave","Wave"]];
+const kfxList=[["off","Off","Backlight off"],["static","Static","One solid colour"],["spectrum","Spectrum","Cycling colours"],["breathing","Breathing","Fades in and out"],["wave","Wave →","Wave to the right","1"],["wave","Wave ←","Wave to the left","2"]];
+let mzone="logo",mfx="static",kfx="static",kdir=1;
+const rgbOf=id=>hex2rgb($(id).value);
+function buildRazer(){
+  [400,800,1200,1600,3200].forEach(v=>{const c=document.createElement("button");c.className="chip";c.textContent=v;c.onclick=()=>{$("#mdpi").value=v;$("#mdpi").dispatchEvent(new Event("input"));set("mdpi",v,v+" DPI")};$("#mdpiChips").append(c)});
+  [125,500,1000].forEach(v=>{const c=document.createElement("button");c.className="chip";c.dataset.v=v;c.textContent=v+" Hz";c.onclick=async()=>{if(await set("mpoll",v,v+" Hz"))markPoll(v)};$("#mpoll").append(c)});
+  [["logo","Logo"],["thumb","Thumb panel"]].forEach(([z,n])=>{const c=document.createElement("button");c.className="chip"+(z===mzone?" on":"");c.dataset.z=z;c.textContent=n;c.onclick=()=>{mzone=z;$$("#mzone .chip").forEach(x=>x.classList.toggle("on",x.dataset.z===z))};$("#mzone").append(c)});
+  [60,120,180,300,600,900].forEach(s=>{const o=document.createElement("option");o.value=s;o.textContent=s<120?"1 minute":s/60+" minutes";$("#midle").append(o)});
+  RFX.forEach(([id,n])=>{const b=document.createElement("button");b.className="big";b.dataset.id=id;b.innerHTML=`<b>${n}</b>`;b.onclick=()=>{mfx=id;$$("#mfx .big").forEach(x=>x.classList.toggle("on",x.dataset.id===id));sendM()};$("#mfx").append(b)});
+  kfxList.forEach(([id,n,d,dir])=>{const b=document.createElement("button");b.className="big";b.dataset.id=id+(dir||"");b.innerHTML=`<b>${n}</b><span>${d}</span>`;b.onclick=()=>{kfx=id;kdir=+(dir||1);$$("#kfx .big").forEach(x=>x.classList.toggle("on",x===b));sendK()};$("#kfx").append(b)});
+}
+const sendM=later(()=>set("mlight",{zone:mzone,effect:mfx,color:rgbOf("#mcol"),direction:1},"Mouse lighting set"),250);
+const sendK=later(()=>{markAfx("");dirty=Date.now();return set("klight",{effect:kfx,color:rgbOf("#kcol"),direction:kdir},"Keyboard lighting set")},250);
+function markPoll(v){$$("#mpoll .chip").forEach(c=>c.classList.toggle("on",+c.dataset.v===v))}
+buildRazer();
+bind("#mdpi","#mdpiO",v=>v+" DPI","mdpi","DPI set");
+bind("#mbr","#mbrO",v=>v+"%","x");$("#mbr").onchange=()=>set("mbright",{zone:mzone,pct:+$("#mbr").value},"Mouse brightness set");
+bind("#kbr","#kbrO",v=>v+"%","kbright","Keyboard brightness set");
+$("#midle").onchange=()=>set("midle",+$("#midle").value,"Sleep time set");
+$("#mcol").oninput=()=>{if(mfx==="off"){mfx="static";$$("#mfx .big").forEach(x=>x.classList.toggle("on",x.dataset.id==="static"))}sendM()};
+$("#kcol").oninput=()=>{if(kfx==="off"||kfx==="spectrum"||kfx==="wave"){kfx="static";kdir=1;$$("#kfx .big").forEach(x=>x.classList.toggle("on",x.dataset.id==="static"))}sendK()};
+$("#ssync").onclick=()=>set("sync",{color:rgbOf("#scol")},"Colour applied to all devices");
+function razerState(S){
+  const bar=(id,v,chg)=>{$("#"+id+"O").textContent=v==null?"asleep":v+"%"+(chg?" ⚡":"");$("#"+id+"bar").style.width=(v||0)+"%"};
+  const m=S.mouse,k=S.keyboard;
+  $("#mbat").textContent=m&&m.battery!=null?m.battery+"%":"–";$("#kbat").textContent=k&&k.battery!=null?k.battery+"%":"–";
+  bar("mbat",m&&m.battery,m&&m.charging);bar("kbat",k&&k.battery,k&&k.charging);$("#dev-mouse").classList.toggle("off",!m||m.battery==null);$("#dev-keyboard").classList.toggle("off",!k||k.battery==null);
+  if(m){if(m.dpi!=null){$("#mdpi").value=m.dpi;$("#mdpi").dispatchEvent(new Event("input"))}markPoll(m.poll);if(m.idle!=null)$("#midle").value=[60,120,180,300,600,900].reduce((a,b)=>Math.abs(b-m.idle)<Math.abs(a-m.idle)?b:a);
+    if(m.logo!=null&&mzone==="logo"){$("#mbr").value=m.logo;$("#mbr").dispatchEvent(new Event("input"))}}
+  if(k&&k.brightness!=null){$("#kbr").value=k.brightness;$("#kbr").dispatchEvent(new Event("input"))}
+}
+/* per-key keyboard painter (ISO full size; positions are the standard Razer matrix, the server applies this keyboard's column shift) */
+const KBL=(()=>{const rows=[],K=(l,c,w=1,r=null,hh=1)=>({l,c,w,r,h:hh});
+  const fk=n=>Array.from({length:4},(_,i)=>K("F"+(n+i),3+(n-1)+i));
+  rows.push([K("Esc",1),1,...fk(1),0.5,...fk(5),0.5,...fk(9),0.5,K("Prt",15),K("Scr",16),K("Pau",17)]);
+  rows.push([..."`1234567890-=".split("").map((l,i)=>K(l,1+i)),K("Bksp",14,2),0.5,K("Ins",15),K("Home",16),K("PgUp",17),0.5,K("Num",18),K("/",19),K("*",20),K("-",21)]);
+  rows.push([K("Tab",1,1.5),..."QWERTYUIOP[]".split("").map((l,i)=>K(l,2+i)),0.25,{...K("Enter",14,1.25,3,2)},0.5,K("Del",15),K("End",16),K("PgDn",17),0.5,K("7",18),K("8",19),K("9",20),K("+",21,1,2,2)]);
+  rows.push([K("Caps",1,1.75),..."ASDFGHJKL;'#".split("").map((l,i)=>K(l,2+i)),1.25,0.5,1,1,1,0.5,K("4",18),K("5",19),K("6",20)]);
+  rows.push([K("Shift",1,1.25),K("\\",2),..."ZXCVBNM,./".split("").map((l,i)=>K(l,3+i)),K("Shift",14,2.75),0.5,1,K("↑",16),1,0.5,K("1",18),K("2",19),K("3",20),K("Ent",21,1,4,2)]);
+  rows.push([K("Ctrl",1,1.25),K("Win",2,1.25),K("Alt",3,1.25),K("Space",7,6.25),K("AltGr",11,1.25),K("Fn",12,1.25),K("Menu",13,1.25),K("Ctrl",14,1.25),0.5,K("←",15),K("↓",16),K("→",17),0.5,K("0",19,2),K("•",20)]);
+  const out=[];rows.forEach((items,ri)=>{let x=0;const y=ri===0?0:1.5+(ri-1);items.forEach(it=>{if(typeof it==="number"){x+=it;return}
+    // key matrix row: the row it sits in, except keys that belong to the row below (tall Enter) / own row
+    const row=it.r!==null?it.r:ri;out.push({l:it.l,r:row,c:it.c,x,y,w:it.w,h:it.h});x+=it.w})});return out})();
+const U=34,cells={};let paintHex="#44d62c",drag=false,dirty=0;
+const KB_W=Math.max(...KBL.map(k=>k.x+k.w)),KB_H=6.5+0.5;
+function buildKb(){const box=$("#kbi");box.style.cssText=`width:${KB_W*U}px;height:${KB_H*U}px`;
+  KBL.forEach(k=>{const b=document.createElement("button");b.className="k";b.dataset.k=k.r+","+k.c;b.style.cssText=`left:${k.x*U}px;top:${k.y*U}px;width:${k.w*U-3}px;height:${k.h*U-3}px`;b.innerHTML="<span>"+k.l+"</span>";b.setAttribute("aria-label","Key "+k.l);
+    b.onpointerdown=e=>{e.preventDefault();drag=true;paintKey(b)};b.onpointerenter=()=>{if(drag)paintKey(b)};box.append(b);cells[b.dataset.k]="#000000"});
+  addEventListener("pointerup",()=>{drag=false});$("#kb").addEventListener("pointermove",e=>{if(!drag)return;const t=document.elementFromPoint(e.clientX,e.clientY);if(t&&t.classList&&t.classList.contains("k"))paintKey(t)})}
+function showKey(b){const c=cells[b.dataset.k];b.style.background=c;b.style.borderColor=c==="#000000"?"":c;b.firstChild.style.opacity=c==="#000000"?".5":".95"}
+function paintKey(b){cells[b.dataset.k]=paintHex;showKey(b);sendKb()}
+function paintAll(fn){$$("#kbi .k").forEach(b=>{const[r,c]=b.dataset.k.split(",").map(Number);cells[b.dataset.k]=fn(r,c,b.firstChild.textContent);showKey(b)});sendKb()}
+const hsv2hex=(h,s=1,v=1)=>{const f=n=>{const k=(n+h*6)%6;return Math.round(255*(v-v*s*Math.max(0,Math.min(k,4-k,1))))};return "#"+[f(5),f(3),f(1)].map(x=>x.toString(16).padStart(2,"0")).join("")};
+const sendKb=later(async()=>{const keys={};for(const[k,c]of Object.entries(cells))keys[k]=hex2rgb(c);dirty=Date.now();
+  await set("kframe",{base:[0,0,0],keys},"Keys updated");kfx="";$$("#kfx .big").forEach(x=>x.classList.remove("on"));markAfx("")},180);
+$("#pkc").oninput=e=>{paintHex=e.target.value};
+$("#pkFill").onclick=()=>paintAll(()=>paintHex);$("#pkClear").onclick=()=>paintAll(()=>"#000000");
+$("#pkRainbow").onclick=()=>paintAll((r,c)=>hsv2hex(c/22));
+$("#pkWasd").onclick=()=>paintAll((r,c,l)=>"WASD".includes(l)&&l.length===1&&r>=2&&r<=3?"#ff3030":["↑","←","↓","→"].includes(l)?"#ffb020":"#1a1a24");
+$("#pkGrad").onclick=()=>{const a=hex2rgb(paintHex),b=hex2rgb("#2f6bff");paintAll((r,c)=>{const t=c/21;return "#"+a.map((x,i)=>Math.round(x+(b[i]-x)*t).toString(16).padStart(2,"0")).join("")})};
+buildKb();
+function kbFromState(S){const f=S.razerLast&&S.razerLast.kframe;if(!f||Date.now()-dirty<8000)return;
+  $$("#kbi .k").forEach(b=>{const v=f.keys[b.dataset.k];const hex=v?"#"+v.map(x=>x.toString(16).padStart(2,"0")).join(""):"#000000";if(cells[b.dataset.k]!==hex){cells[b.dataset.k]=hex;showKey(b)}})}
+/* animated keyboard effects */
+const AFX=[["wave","Rainbow wave","Colours flow across"],["fire","Fire","Flames from the bottom"],["ripple","Ripple","Rings spread from each key you press"],["reactive","Reactive","Keys flash when pressed"],["audio","Audio bars","Equaliser for what is playing"]];
+let afx="";
+const markAfx=id=>{afx=id;$$("#afx .big").forEach(x=>x.classList.toggle("on",x.dataset.id===id))};
+const sendAfx=later(async()=>{if(!afx)return;if(await set("kfx",{effect:afx,color:rgbOf("#afcol"),speed:+$("#afsp").value,base:[0,0,0]},"Animation running")){kfx="";$$("#kfx .big").forEach(x=>x.classList.remove("on"))}},200);
+AFX.forEach(([id,n,d])=>{const b=document.createElement("button");b.className="big";b.dataset.id=id;b.innerHTML=`<b>${n}</b><span>${d}</span>`;b.onclick=()=>{markAfx(id);sendAfx()};$("#afx").append(b)});
+$("#afcol").oninput=sendAfx;$("#afsp").oninput=()=>{$("#afspO").textContent=$("#afsp").value;fill($("#afsp"));sendAfx()};
+$("#afstop").onclick=()=>{markAfx("");kfx="static";kdir=1;sendK()};
+function afxFromState(S){const f=S.razerLast&&S.razerLast.kfx;if(Date.now()-dirty<3000)return;if(f){markAfx(f.effect);if(!busy){$("#afsp").value=f.speed||5;$("#afspO").textContent=f.speed||5;fill($("#afsp"))}}else if(afx&&!busy)markAfx("")}
+
+/* Naga side buttons + macros */
+let R={buttons:{},macros:[]};
+const el=(t,o={},kids=[])=>{const e=document.createElement(t);Object.assign(e,o);kids.forEach(k=>e.append(k));return e};
+const opt=(v,t)=>el("option",{value:v,textContent:t});
+async function loadRemap(){
+  try{const j=await api("/api/remap");R={buttons:j.buttons,macros:Object.entries(j.macros).map(([name,text])=>({name,text}))};
+    $("#rkeys").textContent=j.keys.join(", ");
+    $("#rstat").textContent=j.bound?(j.grabbed?"Active: "+j.bound+" button(s) remapped.":"Waiting for the mouse dongle…"):"Buttons left on Default behave as normal.";
+    renderBtns();renderMacros()}catch(e){toast("Error: "+e.message,"bad")}}
+function renderBtns(){const box=$("#rbtn");box.innerHTML="";
+  for(let i=1;i<=12;i++){const a=R.buttons[i]||{type:"pass"};
+    const ty=el("select",{ariaLabel:"Action for button "+i});[["pass","Default"],["key","Key combo"],["macro","Macro"],["off","Disabled"]].forEach(([v,t])=>ty.append(opt(v,t)));ty.value=a.type;
+    const keys=el("input",{type:"text",placeholder:"e.g. ctrl+shift+m",value:a.keys||"",ariaLabel:"Key combo for button "+i});keys.style.minWidth="150px";
+    const mac=el("select",{ariaLabel:"Macro for button "+i});R.macros.forEach(m=>mac.append(opt(m.name,m.name)));if(a.macro)mac.value=a.macro;
+    const mode=el("select",{ariaLabel:"Macro mode for button "+i});[["once","Play once"],["hold","Repeat while held"],["toggle","Toggle repeat"]].forEach(([v,t])=>mode.append(opt(v,t)));mode.value=a.mode||"once";
+    const sync=()=>{keys.hidden=ty.value!=="key";mac.hidden=mode.hidden=ty.value!=="macro";
+      if(ty.value==="pass")delete R.buttons[i];else if(ty.value==="off")R.buttons[i]={type:"off"};else if(ty.value==="key")R.buttons[i]={type:"key",keys:keys.value};else R.buttons[i]={type:"macro",macro:mac.value,mode:mode.value}};
+    [ty,keys,mac,mode].forEach(x=>x.oninput=sync);sync();
+    const row=el("div",{className:"prow"},[el("b",{textContent:"Button "+i}),ty,keys,mac,mode]);row.style.flexWrap="wrap";box.append(row)}}
+let recFor=null;
+function renderMacros(){const box=$("#rmac");box.innerHTML="";
+  if(!R.macros.length)box.append(el("span",{textContent:"No macros yet.",style:"color:var(--dim)"}));
+  R.macros.forEach(m=>{
+    const name=el("input",{type:"text",value:m.name,maxLength:40,ariaLabel:"Macro name"});
+    name.onchange=()=>{const n=name.value.trim()||m.name;Object.values(R.buttons).forEach(b=>{if(b.macro===m.name)b.macro=n});m.name=n;renderBtns()};
+    const ta=el("textarea",{value:m.text,rows:2,ariaLabel:"Macro steps",spellcheck:false});ta.style.cssText="flex:1 1 100%;background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:13px ui-monospace,monospace";
+    ta.oninput=()=>{m.text=ta.value};
+    const rec=el("button",{className:"btn sm",textContent:"Record"});
+    rec.onclick=async()=>{document.activeElement.blur();
+      try{if(recFor!==m){await api("/api/macro/record",{on:true});recFor=m;rec.textContent="Stop recording";toast("Recording: press keys on the keyboard, then Stop")}
+        else{const j=await api("/api/macro/record",{on:false});recFor=null;rec.textContent="Record";m.text=j.text;ta.value=j.text;if(!j.text)toast("Nothing recorded","bad")}}
+      catch(e){recFor=null;rec.textContent="Record";toast("Error: "+e.message,"bad")}};
+    const del=el("button",{className:"btn sm bad",textContent:"Delete"});
+    del.onclick=()=>{if(confirm("Delete macro “"+m.name+"”?")){R.macros=R.macros.filter(x=>x!==m);Object.keys(R.buttons).forEach(k=>{if(R.buttons[k].macro===m.name)delete R.buttons[k]});renderBtns();renderMacros()}};
+    const row=el("div",{className:"prow"},[name,rec,del,ta]);row.style.flexWrap="wrap";box.append(row)})}
+$("#radd").onclick=()=>{let n=1;while(R.macros.some(m=>m.name==="Macro "+n))n++;R.macros.push({name:"Macro "+n,text:""});renderMacros();renderBtns()};
+$("#rsave").onclick=async()=>{busy++;
+  try{await api("/api/remap",{buttons:R.buttons,macros:Object.fromEntries(R.macros.map(m=>[m.name,m.text]))});toast("Buttons saved","good");await loadRemap()}
+  catch(e){toast("Not saved: "+e.message,"bad")}finally{setTimeout(()=>busy--,800)}};
+loadRemap();
+/* presets and profiles */
+async function loadPresets(){
+  let P;try{P=await api("/api/profiles")}catch(e){return}
+  const chips=(box,scope)=>{box.innerHTML="";
+    P.presets.filter(x=>x.scope===scope).forEach(x=>{
+      const c=document.createElement("button");c.className="chip";c.textContent=x.name;
+      c.onclick=async()=>{busy++;try{const j=await api("/api/profile/load",{name:x.name,scope});toast(j.ok?"Loaded "+x.name:"Loaded, some settings were refused",j.ok?"good":"bad")}catch(e){toast("Error: "+e.message,"bad")}finally{setTimeout(()=>{busy--;dirty=0;refresh()},1200)}};
+      const d=document.createElement("span");d.className="x";d.textContent="✕";d.title="Delete";d.setAttribute("role","button");d.setAttribute("aria-label","Delete "+x.name);
+      d.onclick=async e=>{e.stopPropagation();if(confirm("Delete preset “"+x.name+"”?")){await api("/api/profile/delete",{name:x.name,scope});loadPresets()}};
+      c.append(d);box.append(c)});
+    if(!box.children.length)box.innerHTML='<span style="color:var(--dim)">No presets yet.</span>'};
+  chips($("#lpre"),"light");chips($("#kpre"),"keyboard");
+  const pl=$("#plist");pl.innerHTML="";
+  P.presets.filter(x=>x.scope==="all").forEach(x=>{
+    const r=document.createElement("div");r.className="prow";r.innerHTML=`<b></b><small>all settings</small>`;r.querySelector("b").textContent=x.name;
+    const l=document.createElement("button");l.className="btn sm";l.textContent="Load";
+    l.onclick=async()=>{busy++;l.disabled=true;try{const j=await api("/api/profile/load",{name:x.name,scope:"all"});toast(j.ok?"Loaded "+x.name:"Loaded, some settings were refused",j.ok?"good":"bad")}catch(e){toast("Error: "+e.message,"bad")}finally{l.disabled=false;setTimeout(()=>{busy--;refresh()},1500)}};
+    const d=document.createElement("button");d.className="btn sm bad";d.textContent="Delete";
+    d.onclick=async()=>{if(confirm("Delete profile “"+x.name+"”?")){await api("/api/profile/delete",{name:x.name,scope:"all"});loadPresets()}};
+    r.append(l,d);pl.append(r)});
+  if(!pl.children.length)pl.innerHTML='<span style="color:var(--dim)">No profiles yet. Set things up how you like, then save.</span>';
+  $("#ar").classList.toggle("on",P.autoRestore);
+}
+async function savePreset(inputId,scope){
+  const n=$(inputId).value.trim();if(!n){toast("Give it a name first","bad");$(inputId).focus();return}
+  busy++;try{await api("/api/profile/save",{name:n,scope});$(inputId).value="";toast("Saved “"+n+"”","good");loadPresets()}
+  catch(e){toast("Error: "+e.message,"bad")}finally{setTimeout(()=>busy--,800)}}
+$("#lsave").onclick=()=>savePreset("#lname","light");
+$("#ksave").onclick=()=>savePreset("#kname","keyboard");$("#kname").onkeydown=e=>{if(e.key==="Enter")savePreset("#kname","keyboard")};
+$("#psave").onclick=()=>savePreset("#pname","all");
+$("#lname").onkeydown=e=>{if(e.key==="Enter")savePreset("#lname","light")};
+$("#pname").onkeydown=e=>{if(e.key==="Enter")savePreset("#pname","all")};
+$("#ar").onclick=async()=>{const on=!$("#ar").classList.contains("on");await api("/api/profile/autorestore",{on});$("#ar").classList.toggle("on",on);toast(on?"Will restore at login":"Won't restore at login","good")};
+loadPresets();
+
+/* live state */
+async function refresh(){
+  if(busy)return;
+  try{S=await api("/api/state")}catch(e){$("#dot").className="dot";$("#conn").textContent="Not found";return}
+  if(busy)return;
+  $("#dot").className=S.linked?"dot ok":"dot";$("#conn").textContent=S.linked?(S.wired?"Connected (cable)":"Connected"):"Headphones not linked (off?)";
+  $("#batt").textContent=S.linked?S.battery+"%"+(S.charging?" ⚡":""):"–";$("#batbar").style.width=(S.linked?S.battery:0)+"%";$("#dev-headset").classList.toggle("off",!S.linked);
+  $("#meta").innerHTML=`S/N ${S.serial}<br>Firmware ${S.firmware}`;
+  if(!Object.keys(presets).length){presets=S.eqPresets;buildChips()}
+  if(S.linked&&S.eq.bands){drawEq(S.eq.bands);markEq(S.eq.id)}
+  const setR=(id,v)=>{if(v!=null&&S.linked){const e=$(id);e.value=v;e.dispatchEvent(new Event("input"))}};
+  setR("#bal",S.balance);setR("#vol",S.hubDb);setR("#lt",S.light);setR("#ob",S.oled);setR("#sl",S.sidetone.level);setR("#hi",S.hapInt);setR("#hf",S.hapFreq);setR("#hv",S.hapVol);
+  razerState(S);kbFromState(S);afxFromState(S);markHap(S.haptics);markMic(S.micEq);$("#mm").classList.toggle("on",!!S.micMuted);
+  fx=S.effect.running?S.effect.effect:"off";markFx();if(S.effect.running){$("#fcol").value=rgb2hex(S.effect.color);$("#fsp").value=S.effect.speed;$("#fspO").textContent=S.effect.speed;fill($("#fsp"))}
+$("#thx").classList.toggle("on",S.thx);$("#sur").classList.toggle("on",!!S.surround);$("#st").classList.toggle("on",!!S.sidetone.on);
+}
+refresh();setInterval(refresh,4000);
+$$("input[type=range]").forEach(fill);
+</script>
+</body>
+</html>
